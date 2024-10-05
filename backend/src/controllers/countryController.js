@@ -19,7 +19,7 @@ const fetchFlagData = async (countryName, officialName) => {
     const flagResponse = await axios.post('https://countriesnow.space/api/v0.1/countries/flag/images', {
       country: countryName,
     });
-    flagUrl = flagResponse.data?.data?.flag || 'https://example.com/default-flag.png';
+    flagUrl = flagResponse.data?.data?.flag || 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Vlag_ontbreekt.svg/2560px-Vlag_ontbreekt.svg.png';
     iso3 = flagResponse.data?.data?.iso3;
   } catch (error) {
     console.log(`Error fetching flag with commonName (${countryName}), retrying with officialName (${officialName})`);
@@ -27,11 +27,11 @@ const fetchFlagData = async (countryName, officialName) => {
       const flagResponse = await axios.post('https://countriesnow.space/api/v0.1/countries/flag/images', {
         country: officialName,
       });
-      flagUrl = flagResponse.data?.data?.flag || 'https://example.com/default-flag.png';
+      flagUrl = flagResponse.data?.data?.flag || 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Vlag_ontbreekt.svg/2560px-Vlag_ontbreekt.svg.png';
       iso3 = flagResponse.data?.data?.iso3;
     } catch (error) {
       console.log(`Error fetching flag with officialName (${officialName})`);
-      flagUrl = 'https://example.com/default-flag.png'; // Fallback to default
+      flagUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Vlag_ontbreekt.svg/2560px-Vlag_ontbreekt.svg.png'; // Fallback to default
       iso3 = null; // Fallback if iso3 is not available
     }
   }
