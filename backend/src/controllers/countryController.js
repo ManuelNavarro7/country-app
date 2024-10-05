@@ -12,64 +12,52 @@ const getAvailableCountries = async (req, res) => {
 // Get detailed country info
 // Function to fetch flag data and return flag URL and iso3 code
 const fetchFlagData = async (countryName, officialName) => {
-  let flagUrl;
-  let iso3;
+  const defaultFlagUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Vlag_ontbreekt.svg/2560px-Vlag_ontbreekt.svg.png';
 
-  try {
-    const flagResponse = await axios.post('https://countriesnow.space/api/v0.1/countries/flag/images', {
-      country: countryName,
-    });
-    flagUrl = flagResponse.data?.data?.flag || 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Vlag_ontbreekt.svg/2560px-Vlag_ontbreekt.svg.png';
-    iso3 = flagResponse.data?.data?.iso3;
-  } catch (error) {
-    console.log(`Error fetching flag with commonName (${countryName}), retrying with officialName (${officialName})`);
-    try {
-      const flagResponse = await axios.post('https://countriesnow.space/api/v0.1/countries/flag/images', {
-        country: officialName,
-      });
-      flagUrl = flagResponse.data?.data?.flag || 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Vlag_ontbreekt.svg/2560px-Vlag_ontbreekt.svg.png';
-      iso3 = flagResponse.data?.data?.iso3;
-    } catch (error) {
-      console.log(`Error fetching flag with officialName (${officialName})`);
-      flagUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Vlag_ontbreekt.svg/2560px-Vlag_ontbreekt.svg.png'; // Fallback to default
-      iso3 = null; // Fallback if iso3 is not available
+  const requests = [
+    axios.post('https://countriesnow.space/api/v0.1/countries/flag/images', { country: countryName }),
+    axios.post('https://countriesnow.space/api/v0.1/countries/flag/images', { country: officialName }),
+  ];
+
+  // Use Promise.allSettled to attempt both requests in parallel
+  const results = await Promise.allSettled(requests);
+
+  // Iterate over the results and return the first successful response
+  for (let result of results) {
+    if (result.status === 'fulfilled') {
+      const flagUrl = result.value.data?.data?.flag || defaultFlagUrl;
+      const iso3 = result.value.data?.data?.iso3;
+      return { flagUrl, iso3 };
     }
   }
 
-  return { flagUrl, iso3 };
+  // If both requests fail, return the default flag URL and null iso3
+  return { flagUrl: defaultFlagUrl, iso3: null };
 };
+
 
 // Function to fetch population data with fallback to commonName, officialName, and iso3
 const fetchPopulationData = async (countryName, officialName, iso3) => {
-  let populationData;
+  const requests = [
+    axios.post('https://countriesnow.space/api/v0.1/countries/population', { country: countryName }),
+    axios.post('https://countriesnow.space/api/v0.1/countries/population', { country: officialName }),
+    iso3 ? axios.post('https://countriesnow.space/api/v0.1/countries/population', { iso3: iso3 }) : Promise.reject('No iso3 available'),
+  ];
 
-  try {
-    const populationResponse = await axios.post('https://countriesnow.space/api/v0.1/countries/population', {
-      country: countryName,
-    });
-    populationData = populationResponse.data?.data?.populationCounts;
-  } catch (error) {
-    console.log(`Error fetching population with commonName (${countryName}), retrying with officialName (${officialName})`);
-    try {
-      const populationResponse = await axios.post('https://countriesnow.space/api/v0.1/countries/population', {
-        country: officialName,
-      });
-      populationData = populationResponse.data?.data?.populationCounts;
-    } catch (error) {
-      console.log(`Error fetching population with officialName (${officialName}), retrying with iso3 (${iso3})`);
-      try {
-        const populationResponse = await axios.post('https://countriesnow.space/api/v0.1/countries/population', {
-          iso3: iso3,
-        });
-        populationData = populationResponse.data?.data?.populationCounts;
-      } catch (error) {
-        console.log(`Error fetching population with iso3 (${iso3})`);
-        throw new Error('Population data not available for this country');
+  // Use Promise.allSettled to attempt all requests in parallel
+  const results = await Promise.allSettled(requests);
+
+  // Iterate over the results and return the first successful response
+  for (let result of results) {
+    if (result.status === 'fulfilled') {
+      const populationData = result.value.data?.data?.populationCounts;
+      if (populationData) {
+        return populationData;
       }
     }
   }
 
-  return populationData;
+  throw new Error('Population data not available for this country');
 };
 
 // Main function to get country info
