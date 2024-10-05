@@ -6,9 +6,11 @@ Node.js (v18+)
 npm (v6+)
 Project Structure
 
-/country-app
-/backend        # Backend (Express.js)
-/frontend       # Frontend (Next.js)
+/country-app/backend       
+# Backend (Express.js)
+
+/country-app/frontend       
+# Frontend (Next.js)
 
 Backend - Express.js
 The backend is responsible for fetching country data from external APIs and providing it to the frontend.
