@@ -6,12 +6,10 @@ Node.js (v18+)
 npm (v6+)
 Project Structure
 
-/country-app/backend       
+     
 # Backend (Express.js)
-
-/country-app/frontend       
-# Frontend (Next.js)
-
+/country-app/backend  
+      
 Backend - Express.js
 The backend is responsible for fetching country data from external APIs and providing it to the frontend.
 
@@ -55,6 +53,8 @@ External APIs Used
 Nager.Date API
 CountriesNow API
 
+# Frontend (Next.js)
+/country-app/frontend 
 
 Frontend - React.js (Next.js)
 The frontend displays a list of countries, allowing users to view detailed information about each country, including population data over time and border countries.
